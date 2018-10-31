@@ -6,14 +6,25 @@
   "scripts": {
     "format": "prettier --write \"src/**/*.{js,jsx,css,json}\"",
     "lint": "eslint \"**/*.{js,jsx}\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "parcel src/index.html"
   },
   "author": "Esteban",
   "license": "MIT",
   "devDependencies": {
+    "babel-eslint": "^10.0.1",
     "eslint": "^5.8.0",
     "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
     "eslint-plugin-prettier": "^3.0.0",
+    "eslint-plugin-react": "^7.11.1",
+    "parcel-bundler": "^1.10.3",
     "prettier": "^1.14.3"
+  },
+  "dependencies": {
+    "pet": "^1.0.1",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0"
   }
 }

@@ -1,2 +1,14 @@
 {
+    "workbench.colorTheme": "Cobalt2",
+    "spell.StopAsking": true,
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
+    "window.zoomLevel": 0,
+    "explorer.confirmDragAndDrop": false,
+    "php.validate.executablePath": "C:\\php-7.1.12-nts-Win32-VC14-x86\\php.exe",
+    "git.enableSmartCommit": true,
+    "git.autofetch": true,
+    "workbench.iconTheme": "material-icon-theme",
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "editor.formatOnSave": true,
+    "prettier.requireConfig": true
 }

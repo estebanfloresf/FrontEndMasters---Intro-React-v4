@@ -1,41 +1,25 @@
-const Pet = props => {
-  return React.createElement("div", {}, [
-    React.createElement("h1", {}, props.name),
-    React.createElement("h2", {}, props.animal),
-    React.createElement("h2", {}, props.breed)
-  ]);
-};
+import React from 'react';
+import { render } from 'react-dom';
+import Pet from './Pet';
+import pf from 'pet/finder-client';
+
+const petfinder = pf({
+	key: process.env.API_KEY,
+	secret: process.env.API_SECRET
+});
 
 class App extends React.Component {
-  handletTitleCLick() {
-    alert("Ýou clicked the title");
-  }
-  render() {
-    return React.createElement("div", {}, [
-      React.createElement(
-        "h1",
-        {
-          onClick: this.handletTitleCLick
-        },
-        "Adopt ME"
-      ),
-      React.createElement(Pet, {
-        name: "Luna",
-        animal: "dog",
-        breed: "breeze"
-      }),
-      React.createElement(Pet, {
-        name: "Pepper",
-        animal: "bird",
-        breed: "Cokcatiel"
-      }),
-      React.createElement(Pet, {
-        name: "Doink",
-        animal: "cat",
-        breed: "mixed"
-      })
-    ]);
-  }
+	handletTitleCLick() {
+		alert('Ýou clicked the title');
+	}
+	render() {
+		return (
+			<div>
+				<h1 onClick={this.handletTitleCLick}>Adopt Me</h1>
+				<Pet name={'LUN'} />
+			</div>
+		);
+	}
 }
 
-ReactDOM.render(React.createElement(App), document.getElementById("root"));
+render(<App />, document.getElementById('root'));
