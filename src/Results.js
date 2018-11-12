@@ -1,5 +1,5 @@
 import React from 'react';
-
+import SearchBox from './SearchBox';
 import Pet from './Pet';
 import pf from 'petfinder-client';
 
@@ -13,7 +13,6 @@ class Results extends React.Component {
 		pets: []
 	};
 
-
 	componentDidMount() {
 		petfinder.pet
 			.find({
@@ -26,7 +25,7 @@ class Results extends React.Component {
 					if (Array.isArray(data.petfinder.pets.pet)) {
 						pets = data.petfinder.pets.pet;
 					} else {
-						pets = [data.petfinder.pets.pet];
+						pets = [ data.petfinder.pets.pet ];
 					}
 				} else {
 					pets = [];
@@ -42,49 +41,31 @@ class Results extends React.Component {
 		alert('Ýou clicked the title');
 	}
 	render() {
-		const {
-			pets
-		} = this.state;
-		return ( <
-			div className = "search" > {
-				' '
-			} {
-				pets.map((pet) => {
+		const { pets } = this.state;
+		return (
+			<div className="search">
+				<SearchBox />
+
+				{pets.map((pet) => {
 					let breed;
 					if (Array.isArray(pet.breeds.breed)) {
 						breed = pet.breeds.breed.join(', ');
 					} else {
 						breed = pet.breeds.breed;
 					}
-					return ( <
-						Pet key = {
-							pet.id
-						}
-						animal = {
-							pet.animal
-						}
-						name = {
-							pet.name
-						}
-						breed = {
-							breed
-						}
-						media = {
-							pet.media
-						}
-						location = {
-							`${pet.contact.city}, ${pet.contact.state}`
-						}
-						id = {
-							pet.id
-						}
+					return (
+						<Pet
+							key={pet.id}
+							animal={pet.animal}
+							name={pet.name}
+							breed={breed}
+							media={pet.media}
+							location={`${pet.contact.city}, ${pet.contact.state}`}
+							id={pet.id}
 						/>
 					);
-				})
-			} {
-				' '
-			} <
-			/div>
+				})}
+			</div>
 		);
 	}
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from '@reach/router';
+
 class Pet extends React.Component {
 	render() {
 		const { name, animal, breed, media, location, id } = this.props;
