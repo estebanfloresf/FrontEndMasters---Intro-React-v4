@@ -25419,1144 +25419,341 @@ var createRoute = function createRoute(basepath) {
 var shouldNavigate = function shouldNavigate(event) {
   return !event.defaultPrevented && event.button === 0 && !(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }; ////////////////////////////////////////////////////////////////////////
-},{"react":"../node_modules/react/index.js","warning":"../node_modules/warning/browser.js","prop-types":"../node_modules/prop-types/index.js","invariant":"../node_modules/invariant/browser.js","create-react-context":"../node_modules/create-react-context/lib/index.js","react-lifecycles-compat":"../node_modules/react-lifecycles-compat/react-lifecycles-compat.es.js","./lib/utils":"../node_modules/@reach/router/es/lib/utils.js","./lib/history":"../node_modules/@reach/router/es/lib/history.js"}],"../node_modules/process/browser.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","warning":"../node_modules/warning/browser.js","prop-types":"../node_modules/prop-types/index.js","invariant":"../node_modules/invariant/browser.js","create-react-context":"../node_modules/create-react-context/lib/index.js","react-lifecycles-compat":"../node_modules/react-lifecycles-compat/react-lifecycles-compat.es.js","./lib/utils":"../node_modules/@reach/router/es/lib/utils.js","./lib/history":"../node_modules/@reach/router/es/lib/history.js"}],"../node_modules/react-loadable/lib/index.js":[function(require,module,exports) {
+"use strict";
 
-// shim for using process in browser
-var process = module.exports = {}; // cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var cachedSetTimeout;
-var cachedClearTimeout;
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function defaultSetTimout() {
-  throw new Error('setTimeout has not been defined');
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var React = require("react");
+var PropTypes = require("prop-types");
+
+var ALL_INITIALIZERS = [];
+var READY_INITIALIZERS = [];
+
+function isWebpackReady(getModuleIds) {
+  if ((typeof __webpack_modules__ === "undefined" ? "undefined" : _typeof(__webpack_modules__)) !== "object") {
+    return false;
+  }
+
+  return getModuleIds().every(function (moduleId) {
+    return typeof moduleId !== "undefined" && typeof __webpack_modules__[moduleId] !== "undefined";
+  });
 }
 
-function defaultClearTimeout() {
-  throw new Error('clearTimeout has not been defined');
+function load(loader) {
+  var promise = loader();
+
+  var state = {
+    loading: true,
+    loaded: null,
+    error: null
+  };
+
+  state.promise = promise.then(function (loaded) {
+    state.loading = false;
+    state.loaded = loaded;
+    return loaded;
+  }).catch(function (err) {
+    state.loading = false;
+    state.error = err;
+    throw err;
+  });
+
+  return state;
 }
 
-(function () {
-  try {
-    if (typeof setTimeout === 'function') {
-      cachedSetTimeout = setTimeout;
-    } else {
-      cachedSetTimeout = defaultSetTimout;
-    }
-  } catch (e) {
-    cachedSetTimeout = defaultSetTimout;
-  }
+function loadMap(obj) {
+  var state = {
+    loading: false,
+    loaded: {},
+    error: null
+  };
 
-  try {
-    if (typeof clearTimeout === 'function') {
-      cachedClearTimeout = clearTimeout;
-    } else {
-      cachedClearTimeout = defaultClearTimeout;
-    }
-  } catch (e) {
-    cachedClearTimeout = defaultClearTimeout;
-  }
-})();
-
-function runTimeout(fun) {
-  if (cachedSetTimeout === setTimeout) {
-    //normal enviroments in sane situations
-    return setTimeout(fun, 0);
-  } // if setTimeout wasn't available but was latter defined
-
-
-  if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-    cachedSetTimeout = setTimeout;
-    return setTimeout(fun, 0);
-  }
-
-  try {
-    // when when somebody has screwed with setTimeout but no I.E. maddness
-    return cachedSetTimeout(fun, 0);
-  } catch (e) {
-    try {
-      // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-      return cachedSetTimeout.call(null, fun, 0);
-    } catch (e) {
-      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-      return cachedSetTimeout.call(this, fun, 0);
-    }
-  }
-}
-
-function runClearTimeout(marker) {
-  if (cachedClearTimeout === clearTimeout) {
-    //normal enviroments in sane situations
-    return clearTimeout(marker);
-  } // if clearTimeout wasn't available but was latter defined
-
-
-  if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-    cachedClearTimeout = clearTimeout;
-    return clearTimeout(marker);
-  }
+  var promises = [];
 
   try {
-    // when when somebody has screwed with setTimeout but no I.E. maddness
-    return cachedClearTimeout(marker);
-  } catch (e) {
-    try {
-      // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-      return cachedClearTimeout.call(null, marker);
-    } catch (e) {
-      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-      // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-      return cachedClearTimeout.call(this, marker);
-    }
-  }
-}
+    Object.keys(obj).forEach(function (key) {
+      var result = load(obj[key]);
 
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-  if (!draining || !currentQueue) {
-    return;
-  }
-
-  draining = false;
-
-  if (currentQueue.length) {
-    queue = currentQueue.concat(queue);
-  } else {
-    queueIndex = -1;
-  }
-
-  if (queue.length) {
-    drainQueue();
-  }
-}
-
-function drainQueue() {
-  if (draining) {
-    return;
-  }
-
-  var timeout = runTimeout(cleanUpNextTick);
-  draining = true;
-  var len = queue.length;
-
-  while (len) {
-    currentQueue = queue;
-    queue = [];
-
-    while (++queueIndex < len) {
-      if (currentQueue) {
-        currentQueue[queueIndex].run();
-      }
-    }
-
-    queueIndex = -1;
-    len = queue.length;
-  }
-
-  currentQueue = null;
-  draining = false;
-  runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-  var args = new Array(arguments.length - 1);
-
-  if (arguments.length > 1) {
-    for (var i = 1; i < arguments.length; i++) {
-      args[i - 1] = arguments[i];
-    }
-  }
-
-  queue.push(new Item(fun, args));
-
-  if (queue.length === 1 && !draining) {
-    runTimeout(drainQueue);
-  }
-}; // v8 likes predictible objects
-
-
-function Item(fun, array) {
-  this.fun = fun;
-  this.array = array;
-}
-
-Item.prototype.run = function () {
-  this.fun.apply(null, this.array);
-};
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) {
-  return [];
-};
-
-process.binding = function (name) {
-  throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () {
-  return '/';
-};
-
-process.chdir = function (dir) {
-  throw new Error('process.chdir is not supported');
-};
-
-process.umask = function () {
-  return 0;
-};
-},{}],"../node_modules/is-node/index.js":[function(require,module,exports) {
-var process = require("process");
-// Coding standard for this project defined @ https://github.com/MatthewSH/standards/blob/master/JavaScript.md
-'use strict';
-
-exports = module.exports = !!(typeof process !== 'undefined' && process.versions && process.versions.node);
-},{"process":"../node_modules/process/browser.js"}],"../node_modules/browser-jsonp/lib/jsonp.js":[function(require,module,exports) {
-var define;
-(function() {
-  var JSONP, computedUrl, createElement, encode, noop, objectToURI, random, randomString;
-
-  createElement = function(tag) {
-    return window.document.createElement(tag);
-  };
-
-  encode = window.encodeURIComponent;
-
-  random = Math.random;
-
-  JSONP = function(options) {
-    var callback, callbackFunc, callbackName, done, head, params, script;
-    if (options == null) {
-      options = {};
-    }
-    params = {
-      data: options.data || {},
-      error: options.error || noop,
-      success: options.success || noop,
-      beforeSend: options.beforeSend || noop,
-      complete: options.complete || noop,
-      url: options.url || ''
-    };
-    params.computedUrl = computedUrl(params);
-    if (params.url.length === 0) {
-      throw new Error('MissingUrl');
-    }
-    done = false;
-    if (params.beforeSend({}, params) !== false) {
-      callbackName = options.callbackName || 'callback';
-      callbackFunc = options.callbackFunc || 'jsonp_' + randomString(15);
-      callback = params.data[callbackName] = callbackFunc;
-      window[callback] = function(data) {
-        window[callback] = null;
-        params.success(data, params);
-        return params.complete(data, params);
-      };
-      script = createElement('script');
-      script.src = computedUrl(params);
-      script.async = true;
-      script.onerror = function(evt) {
-        params.error({
-          url: script.src,
-          event: evt
-        });
-        return params.complete({
-          url: script.src,
-          event: evt
-        }, params);
-      };
-      script.onload = script.onreadystatechange = function() {
-        var ref, ref1;
-        if (done || ((ref = this.readyState) !== 'loaded' && ref !== 'complete')) {
-          return;
-        }
-        done = true;
-        if (script) {
-          script.onload = script.onreadystatechange = null;
-          if ((ref1 = script.parentNode) != null) {
-            ref1.removeChild(script);
-          }
-          return script = null;
-        }
-      };
-      head = window.document.getElementsByTagName('head')[0] || window.document.documentElement;
-      head.insertBefore(script, head.firstChild);
-    }
-    return {
-      abort: function() {
-        window[callback] = function() {
-          return window[callback] = null;
-        };
-        done = true;
-        if (script != null ? script.parentNode : void 0) {
-          script.onload = script.onreadystatechange = null;
-          script.parentNode.removeChild(script);
-          return script = null;
-        }
-      }
-    };
-  };
-
-  noop = function() {
-    return void 0;
-  };
-
-  computedUrl = function(params) {
-    var url;
-    url = params.url;
-    url += params.url.indexOf('?') < 0 ? '?' : '&';
-    url += objectToURI(params.data);
-    return url;
-  };
-
-  randomString = function(length) {
-    var str;
-    str = '';
-    while (str.length < length) {
-      str += random().toString(36).slice(2, 3);
-    }
-    return str;
-  };
-
-  objectToURI = function(obj) {
-    var data, key, value;
-    data = (function() {
-      var results;
-      results = [];
-      for (key in obj) {
-        value = obj[key];
-        results.push(encode(key) + '=' + encode(value));
-      }
-      return results;
-    })();
-    return data.join('&');
-  };
-
-  if (typeof define !== "undefined" && define !== null ? define.amd : void 0) {
-    define(function() {
-      return JSONP;
-    });
-  } else if (typeof module !== "undefined" && module !== null ? module.exports : void 0) {
-    module.exports = JSONP;
-  } else {
-    this.JSONP = JSONP;
-  }
-
-}).call(this);
-
-},{}],"../node_modules/petfinder-client/index.js":[function(require,module,exports) {
-const isNode = require("is-node");
-let jsonp = () =>
-  console.warn("WARNING, YOU CALLED JSONP IN A NON-BROWSER CONTEXT");
-if (!isNode) {
-  jsonp = require("browser-jsonp");
-}
-
-let key;
-const BASE_URL = "http://api.petfinder.com";
-const ANIMALS = [
-  "dog",
-  "cat",
-  "bird",
-  "barnyard",
-  "reptile",
-  "smallfurry",
-  "horse",
-  "pig"
-];
-
-const serialize = function(res) {
-  const acc = {};
-  for (let prop in res) {
-    if (!prop) {
-      break;
-    }
-    if (res.hasOwnProperty(prop) && prop.charAt(0) !== "@") {
-      if (res[prop].hasOwnProperty("$t")) {
-        acc[prop] = res[prop]["$t"];
-      } else if (Array.isArray(res[prop])) {
-        acc[prop] = res[prop].map(item => {
-          if (item.hasOwnProperty("$t")) {
-            if (Object.getOwnPropertyNames(item).length > 1) {
-              item.value = item["$t"];
-              delete item["$t"];
-              return item;
-            } else {
-              return item["$t"];
-            }
-          } else {
-            return serialize(item);
-          }
-        });
-      } else if (Object.getOwnPropertyNames(res[prop]).length === 0) {
-        acc[prop] = null;
+      if (!result.loading) {
+        state.loaded[key] = result.loaded;
+        state.error = result.error;
       } else {
-        let serialized = serialize(res[prop]);
-        acc[prop] = serialized;
+        state.loading = true;
       }
-    }
-  }
-  return acc;
-};
 
-const request = function(method, opts) {
-  let newOpts = { key, format: "json" };
-  newOpts = Object.assign(newOpts, opts);
-  return new Promise((resolve, reject) => {
-    jsonp({
-      url: BASE_URL + "/" + method,
-      data: newOpts,
-      success: function(data) {
-        resolve(serialize(data));
-      },
-      error: function(err) {
-        reject(err);
+      promises.push(result.promise);
+
+      result.promise.then(function (res) {
+        state.loaded[key] = res;
+      }).catch(function (err) {
+        state.error = err;
+      });
+    });
+  } catch (err) {
+    state.error = err;
+  }
+
+  state.promise = Promise.all(promises).then(function (res) {
+    state.loading = false;
+    return res;
+  }).catch(function (err) {
+    state.loading = false;
+    throw err;
+  });
+
+  return state;
+}
+
+function resolve(obj) {
+  return obj && obj.__esModule ? obj.default : obj;
+}
+
+function render(loaded, props) {
+  return React.createElement(resolve(loaded), props);
+}
+
+function createLoadableComponent(loadFn, options) {
+  var _class, _temp;
+
+  if (!options.loading) {
+    throw new Error("react-loadable requires a `loading` component");
+  }
+
+  var opts = Object.assign({
+    loader: null,
+    loading: null,
+    delay: 200,
+    timeout: null,
+    render: render,
+    webpack: null,
+    modules: null
+  }, options);
+
+  var res = null;
+
+  function init() {
+    if (!res) {
+      res = loadFn(opts.loader);
+    }
+    return res.promise;
+  }
+
+  ALL_INITIALIZERS.push(init);
+
+  if (typeof opts.webpack === "function") {
+    READY_INITIALIZERS.push(function () {
+      if (isWebpackReady(opts.webpack)) {
+        return init();
       }
     });
-  });
-};
-
-const api = {
-  breed: {
-    list(opts) {
-      return request("breed.list", opts);
-    }
-  },
-  pet: {
-    getRandom(opts) {
-      return request("pet.getRandom", opts);
-    },
-    get(opts) {
-      return request("pet.get", opts);
-    },
-    find(opts) {
-      return request("pet.find", opts);
-    }
-  },
-  shelter: {
-    getPets(opts) {
-      return request("shelter.getPets", opts);
-    },
-    listByBreed(opts) {
-      return request("shelter.listByBreed", opts);
-    },
-    find(opts) {
-      return request("shelter.find", opts);
-    },
-    get(opts) {
-      return request("shelter.get", opts);
-    }
-  }
-};
-
-module.exports = function createPetfinderSingleton(creds) {
-  if (creds) {
-    key = creds.key;
-  }
-  return api;
-};
-module.exports.ANIMALS = ANIMALS;
-
-},{"is-node":"../node_modules/is-node/index.js","browser-jsonp":"../node_modules/browser-jsonp/lib/jsonp.js"}],"SearchContext.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Consumer = exports.Provider = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var SearchContext = _react.default.createContext({
-  location: 'Seattle, WA',
-  animal: '',
-  breed: '',
-  breeds: [],
-  handleAnimalChange: function handleAnimalChange() {},
-  handleBreedChange: function handleBreedChange() {},
-  handleLocationChange: function handleLocationChange() {},
-  getBreeds: function getBreeds() {}
-});
-
-var Provider = SearchContext.Provider;
-exports.Provider = Provider;
-var Consumer = SearchContext.Consumer;
-exports.Consumer = Consumer;
-},{"react":"../node_modules/react/index.js"}],"SearchBox.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireWildcard(require("react"));
-
-var _petfinderClient = require("petfinder-client");
-
-var _SearchContext = require("./SearchContext");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var SearchBox =
-/*#__PURE__*/
-function (_Component) {
-  _inherits(SearchBox, _Component);
-
-  function SearchBox() {
-    var _getPrototypeOf2;
-
-    var _this;
-
-    var _temp;
-
-    _classCallCheck(this, SearchBox);
-
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    return _possibleConstructorReturn(_this, (_temp = _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(SearchBox)).call.apply(_getPrototypeOf2, [this].concat(args))), _this.handleFormSubmit = function (event) {
-      event.preventDefault();
-
-      _this.props.search();
-    }, _temp));
   }
 
-  _createClass(SearchBox, [{
-    key: "render",
-    value: function render() {
-      var _this2 = this;
+  return _temp = _class = function (_React$Component) {
+    _inherits(LoadableComponent, _React$Component);
 
-      return _react.default.createElement(_SearchContext.Consumer, null, function (context) {
-        return _react.default.createElement("div", {
-          className: "search-params"
-        }, _react.default.createElement("form", {
-          onSubmit: _this2.handleFormSubmit
-        }, _react.default.createElement("label", {
-          htmlFor: "location"
-        }, "Location", _react.default.createElement("input", {
-          id: "location",
-          value: context.location,
-          placeholder: "Location",
-          onChange: context.handleLocationChange
-        })), _react.default.createElement("label", {
-          htmlFor: "animal"
-        }, "Animal", _react.default.createElement("select", {
-          id: "animal",
-          value: context.animal,
-          onChange: context.handleAnimalChange,
-          onBlur: context.handleAnimalChange
-        }, _react.default.createElement("option", null), _petfinderClient.ANIMALS.map(function (animal) {
-          return _react.default.createElement("option", {
-            key: animal,
-            value: animal
-          }, animal);
-        }))), _react.default.createElement("label", {
-          htmlFor: "breed"
-        }, "Breed", _react.default.createElement("select", {
-          disabled: !context.breeds.length,
-          id: "breed",
-          value: context.breed,
-          onChange: context.handleBreedChange,
-          onBlur: context.handleBreedChange
-        }, _react.default.createElement("option", null), context.breeds.map(function (breed) {
-          return _react.default.createElement("option", {
-            key: breed,
-            value: breed
-          }, breed);
-        }))), _react.default.createElement("button", {
-          onClick: _this2.props.search
-        }, "Submit")));
-      });
-    }
-  }]);
+    function LoadableComponent(props) {
+      _classCallCheck(this, LoadableComponent);
 
-  return SearchBox;
-}(_react.Component);
+      var _this = _possibleConstructorReturn(this, _React$Component.call(this, props));
 
-exports.default = SearchBox;
-},{"react":"../node_modules/react/index.js","petfinder-client":"../node_modules/petfinder-client/index.js","./SearchContext":"SearchContext.js"}],"Pet.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-var _router = require("@reach/router");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var Pet =
-/*#__PURE__*/
-function (_React$Component) {
-  _inherits(Pet, _React$Component);
-
-  function Pet() {
-    _classCallCheck(this, Pet);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(Pet).apply(this, arguments));
-  }
-
-  _createClass(Pet, [{
-    key: "render",
-    value: function render() {
-      var _this$props = this.props,
-          name = _this$props.name,
-          animal = _this$props.animal,
-          breed = _this$props.breed,
-          media = _this$props.media,
-          location = _this$props.location,
-          id = _this$props.id;
-      var photos = [];
-
-      if (media && media.photos && media.photos.photo) {
-        photos = media.photos.photo.filter(function (photo) {
-          return photo['@size'] === 'pn';
-        });
-      }
-
-      var hero = photos[0] ? photos[0].value : 'http://placecorgi.com/300/300';
-      return _react.default.createElement(_router.Link, {
-        to: "/details/".concat(id),
-        className: "pet"
-      }, _react.default.createElement("div", {
-        className: "image-container"
-      }, _react.default.createElement("img", {
-        src: hero,
-        alt: name
-      }), ' '), ' ', _react.default.createElement("div", {
-        className: "info"
-      }, _react.default.createElement("h1", null, " ", name, " "), " ", _react.default.createElement("h2", null, " ", "".concat(animal, " \u2014 ").concat(breed, " \u2014 ").concat(location), " ")), ' ');
-    }
-  }]);
-
-  return Pet;
-}(_react.default.Component);
-
-var _default = Pet;
-exports.default = _default;
-},{"react":"../node_modules/react/index.js","@reach/router":"../node_modules/@reach/router/es/index.js"}],"Results.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = ResultsWithContext;
-
-var _react = _interopRequireDefault(require("react"));
-
-var _SearchBox = _interopRequireDefault(require("./SearchBox"));
-
-var _Pet = _interopRequireDefault(require("./Pet"));
-
-var _petfinderClient = _interopRequireDefault(require("petfinder-client"));
-
-var _SearchContext = require("./SearchContext");
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var petfinder = (0, _petfinderClient.default)({
-  key: "8a8a3aae668f6e7d1e49941152511848",
-  secret: "cf1a030ecc1bc4ba14d255fdeca53338"
-});
-
-var Results =
-/*#__PURE__*/
-function (_React$Component) {
-  _inherits(Results, _React$Component);
-
-  function Results() {
-    var _getPrototypeOf2;
-
-    var _this;
-
-    var _temp;
-
-    _classCallCheck(this, Results);
-
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    return _possibleConstructorReturn(_this, (_temp = _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(Results)).call.apply(_getPrototypeOf2, [this].concat(args))), _this.state = {
-      pets: []
-    }, _this.search = function () {
-      petfinder.pet.find({
-        output: 'full',
-        location: _this.props.searchParams.location,
-        animal: _this.props.searchParams.animal,
-        breed: _this.props.searchParams.breed
-      }).then(function (data) {
-        var pets;
-
-        if (data.petfinder.pets && data.petfinder.pets.pet) {
-          if (Array.isArray(data.petfinder.pets.pet)) {
-            pets = data.petfinder.pets.pet;
-          } else {
-            pets = [data.petfinder.pets.pet];
-          }
-        } else {
-          pets = [];
-        }
-
-        _this.setState({
-          pets: pets
-        });
-      });
-    }, _temp));
-  }
-
-  _createClass(Results, [{
-    key: "componentDidMount",
-    value: function componentDidMount() {
-      this.search();
-    }
-  }, {
-    key: "handletTitleCLick",
-    value: function handletTitleCLick() {
-      alert('Ýou clicked the title');
-    }
-  }, {
-    key: "render",
-    value: function render() {
-      var pets = this.state.pets;
-      return _react.default.createElement("div", {
-        className: "search"
-      }, _react.default.createElement(_SearchBox.default, {
-        search: this.search
-      }), pets.map(function (pet) {
-        var breed;
-
-        if (Array.isArray(pet.breeds.breed)) {
-          breed = pet.breeds.breed.join(', ');
-        } else {
-          breed = pet.breeds.breed;
-        }
-
-        return _react.default.createElement(_Pet.default, {
-          key: pet.id,
-          animal: pet.animal,
-          name: pet.name,
-          breed: breed,
-          media: pet.media,
-          location: "".concat(pet.contact.city, ", ").concat(pet.contact.state),
-          id: pet.id
-        });
-      }));
-    }
-  }]);
-
-  return Results;
-}(_react.default.Component); // add consumer to export
-
-
-function ResultsWithContext(props) {
-  return _react.default.createElement(_SearchContext.Consumer, null, function (context) {
-    return _react.default.createElement(Results, _extends({}, props, {
-      searchParams: context
-    }));
-  });
-}
-},{"react":"../node_modules/react/index.js","./SearchBox":"SearchBox.js","./Pet":"Pet.js","petfinder-client":"../node_modules/petfinder-client/index.js","./SearchContext":"SearchContext.js"}],"Carousel.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var Carousel =
-/*#__PURE__*/
-function (_React$Component) {
-  _inherits(Carousel, _React$Component);
-
-  function Carousel() {
-    var _getPrototypeOf2;
-
-    var _this;
-
-    var _temp;
-
-    _classCallCheck(this, Carousel);
-
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    return _possibleConstructorReturn(_this, (_temp = _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(Carousel)).call.apply(_getPrototypeOf2, [this].concat(args))), _this.state = {
-      photos: [],
-      active: 0
-    }, _this.handleIndexClick = function (event) {
-      _this.setState({
-        active: +event.target.dataset.index
-      });
-    }, _temp));
-  }
-
-  _createClass(Carousel, [{
-    key: "render",
-    value: function render() {
-      var _this2 = this;
-
-      var _this$state = this.state,
-          photos = _this$state.photos,
-          active = _this$state.active;
-      return _react.default.createElement("div", {
-        className: "carousel"
-      }, _react.default.createElement("img", {
-        src: photos[active].value,
-        alt: "animal"
-      }), _react.default.createElement("div", {
-        className: "carousel-smaller"
-      }, photos.map(function (photo, index) {
-        return _react.default.createElement("img", {
-          onClick: _this2.handleIndexClick,
-          key: photo.value,
-          "data-index": index,
-          src: photo.value,
-          className: index === active ? 'active' : '',
-          alt: "animal thumbnail"
-        });
-      })));
-    }
-  }], [{
-    key: "getDerivedStateFromProps",
-    value: function getDerivedStateFromProps(_ref) {
-      var media = _ref.media;
-      var photos = [];
-
-      if (media && media.photos && media.photos.photo) {
-        photos = media.photos.photo.filter(function (photo) {
-          return photo['@size'] === 'pn';
-        });
-      }
-
-      return {
-        photos: photos
+      _this.retry = function () {
+        _this.setState({ error: null, loading: true, timedOut: false });
+        res = loadFn(opts.loader);
+        _this._loadModule();
       };
-    }
-  }]);
 
-  return Carousel;
-}(_react.default.Component);
+      init();
 
-var _default = Carousel;
-exports.default = _default;
-},{"react":"../node_modules/react/index.js"}],"Modal.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-var _reactDom = require("react-dom");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var modalRoot = document.getElementById('modal');
-
-var Modal =
-/*#__PURE__*/
-function (_React$Component) {
-  _inherits(Modal, _React$Component);
-
-  function Modal(props) {
-    var _this;
-
-    _classCallCheck(this, Modal);
-
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Modal).call(this, props));
-    _this.el = document.createElement('div');
-    return _this;
-  }
-
-  _createClass(Modal, [{
-    key: "componentDidMount",
-    value: function componentDidMount() {
-      modalRoot.appendChild(this.el);
-    }
-  }, {
-    key: "componentWillUnmount",
-    value: function componentWillUnmount() {
-      modalRoot.removeChild(this.el);
-    }
-  }, {
-    key: "render",
-    value: function render() {
-      return (0, _reactDom.createPortal)(this.props.children, this.el);
-    }
-  }]);
-
-  return Modal;
-}(_react.default.Component);
-
-var _default = Modal;
-exports.default = _default;
-},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js"}],"Details.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-var _petfinderClient = _interopRequireDefault(require("petfinder-client"));
-
-var _router = require("@reach/router");
-
-var _Carousel = _interopRequireDefault(require("./Carousel"));
-
-var _Modal = _interopRequireDefault(require("./Modal"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var petfinder = (0, _petfinderClient.default)({
-  key: "8a8a3aae668f6e7d1e49941152511848",
-  secret: "cf1a030ecc1bc4ba14d255fdeca53338"
-});
-
-var Details =
-/*#__PURE__*/
-function (_React$Component) {
-  _inherits(Details, _React$Component);
-
-  function Details() {
-    var _getPrototypeOf2;
-
-    var _this;
-
-    var _temp;
-
-    _classCallCheck(this, Details);
-
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
+      _this.state = {
+        error: res.error,
+        pastDelay: false,
+        timedOut: false,
+        loading: res.loading,
+        loaded: res.loaded
+      };
+      return _this;
     }
 
-    return _possibleConstructorReturn(_this, (_temp = _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(Details)).call.apply(_getPrototypeOf2, [this].concat(args))), _this.state = {
-      loading: true,
-      showModal: false
-    }, _this.toggleModal = function () {
-      return _this.setState({
-        showModal: !_this.state.showModal
-      });
-    }, _temp));
-  }
+    LoadableComponent.preload = function preload() {
+      return init();
+    };
 
-  _createClass(Details, [{
-    key: "componentDidMount",
-    value: function componentDidMount() {
+    LoadableComponent.prototype.componentWillMount = function componentWillMount() {
+      this._mounted = true;
+      this._loadModule();
+    };
+
+    LoadableComponent.prototype._loadModule = function _loadModule() {
       var _this2 = this;
 
-      petfinder.pet.get({
-        output: 'full',
-        id: this.props.id
-      }).then(function (data) {
-        var breed;
+      if (this.context.loadable && Array.isArray(opts.modules)) {
+        opts.modules.forEach(function (moduleName) {
+          _this2.context.loadable.report(moduleName);
+        });
+      }
 
-        if (Array.isArray(data.petfinder.pet.breeds.breed)) {
-          breed = data.petfinder.pet.breeds.breed.join(', ');
+      if (!res.loading) {
+        return;
+      }
+
+      if (typeof opts.delay === "number") {
+        if (opts.delay === 0) {
+          this.setState({ pastDelay: true });
         } else {
-          breed = data.petfinder.pet.breeds.breed;
+          this._delay = setTimeout(function () {
+            _this2.setState({ pastDelay: true });
+          }, opts.delay);
+        }
+      }
+
+      if (typeof opts.timeout === "number") {
+        this._timeout = setTimeout(function () {
+          _this2.setState({ timedOut: true });
+        }, opts.timeout);
+      }
+
+      var update = function update() {
+        if (!_this2._mounted) {
+          return;
         }
 
         _this2.setState({
-          name: data.petfinder.pet.name,
-          animal: data.petfinder.pet.animal,
-          location: "".concat(data.petfinder.pet.contact.city, ", ").concat(data.petfinder.pet.contact.state),
-          description: data.petfinder.pet.description,
-          media: data.petfinder.pet.media,
-          breed: breed,
-          loading: false
+          error: res.error,
+          loaded: res.loaded,
+          loading: res.loading
         });
+
+        _this2._clearTimeouts();
+      };
+
+      res.promise.then(function () {
+        update();
       }).catch(function (err) {
-        return (0, _router.navigate)('/');
+        update();
       });
-    }
-  }, {
-    key: "render",
-    value: function render() {
-      if (this.state.loading) {
-        return _react.default.createElement("h1", null, " loading\u2026 ");
+    };
+
+    LoadableComponent.prototype.componentWillUnmount = function componentWillUnmount() {
+      this._mounted = false;
+      this._clearTimeouts();
+    };
+
+    LoadableComponent.prototype._clearTimeouts = function _clearTimeouts() {
+      clearTimeout(this._delay);
+      clearTimeout(this._timeout);
+    };
+
+    LoadableComponent.prototype.render = function render() {
+      if (this.state.loading || this.state.error) {
+        return React.createElement(opts.loading, {
+          isLoading: this.state.loading,
+          pastDelay: this.state.pastDelay,
+          timedOut: this.state.timedOut,
+          error: this.state.error,
+          retry: this.retry
+        });
+      } else if (this.state.loaded) {
+        return opts.render(this.state.loaded, this.props);
+      } else {
+        return null;
       }
+    };
 
-      var _this$state = this.state,
-          animal = _this$state.animal,
-          breed = _this$state.breed,
-          location = _this$state.location,
-          description = _this$state.description,
-          media = _this$state.media,
-          showModal = _this$state.showModal;
-      return _react.default.createElement("div", {
-        className: "details"
-      }, _react.default.createElement(_Carousel.default, {
-        media: media
-      }), _react.default.createElement("div", null, _react.default.createElement("h1", null, " ", name, " "), _react.default.createElement("h2", null, " ", "".concat(animal, " \u2014 ").concat(breed, " \u2014 ").concat(location), " "), _react.default.createElement("button", {
-        onClick: this.toggleModal
-      }, "Adopt ", name), _react.default.createElement("p", null, " ", description, " "), showModal ? _react.default.createElement(_Modal.default, null, _react.default.createElement("h1", null, "Would you like to adopt ", name, "?"), _react.default.createElement("div", {
-        className: "buttons"
-      }, _react.default.createElement("button", {
-        onClick: this.toggleModal
-      }, "Yes"), _react.default.createElement("button", {
-        onClick: this.toggleModal
-      }, "No"))) : null));
+    return LoadableComponent;
+  }(React.Component), _class.contextTypes = {
+    loadable: PropTypes.shape({
+      report: PropTypes.func.isRequired
+    })
+  }, _temp;
+}
+
+function Loadable(opts) {
+  return createLoadableComponent(load, opts);
+}
+
+function LoadableMap(opts) {
+  if (typeof opts.render !== "function") {
+    throw new Error("LoadableMap requires a `render(loaded, props)` function");
+  }
+
+  return createLoadableComponent(loadMap, opts);
+}
+
+Loadable.Map = LoadableMap;
+
+var Capture = function (_React$Component2) {
+  _inherits(Capture, _React$Component2);
+
+  function Capture() {
+    _classCallCheck(this, Capture);
+
+    return _possibleConstructorReturn(this, _React$Component2.apply(this, arguments));
+  }
+
+  Capture.prototype.getChildContext = function getChildContext() {
+    return {
+      loadable: {
+        report: this.props.report
+      }
+    };
+  };
+
+  Capture.prototype.render = function render() {
+    return React.Children.only(this.props.children);
+  };
+
+  return Capture;
+}(React.Component);
+
+Capture.propTypes = {
+  report: PropTypes.func.isRequired
+};
+Capture.childContextTypes = {
+  loadable: PropTypes.shape({
+    report: PropTypes.func.isRequired
+  }).isRequired
+};
+
+
+Loadable.Capture = Capture;
+
+function flushInitializers(initializers) {
+  var promises = [];
+
+  while (initializers.length) {
+    var init = initializers.pop();
+    promises.push(init());
+  }
+
+  return Promise.all(promises).then(function () {
+    if (initializers.length) {
+      return flushInitializers(initializers);
     }
-  }]);
+  });
+}
 
-  return Details;
-}(_react.default.Component);
+Loadable.preloadAll = function () {
+  return new Promise(function (resolve, reject) {
+    flushInitializers(ALL_INITIALIZERS).then(resolve, reject);
+  });
+};
 
-var _default = Details;
-exports.default = _default;
-},{"react":"../node_modules/react/index.js","petfinder-client":"../node_modules/petfinder-client/index.js","@reach/router":"../node_modules/@reach/router/es/index.js","./Carousel":"Carousel.js","./Modal":"Modal.js"}],"../node_modules/@emotion/memoize/dist/memoize.esm.js":[function(require,module,exports) {
+Loadable.preloadReady = function () {
+  return new Promise(function (resolve, reject) {
+    // We always will resolve, errors should be handled within loading UIs.
+    flushInitializers(READY_INITIALIZERS).then(resolve, resolve);
+  });
+};
+
+module.exports = Loadable;
+},{"react":"../node_modules/react/index.js","prop-types":"../node_modules/prop-types/index.js"}],"../node_modules/@emotion/memoize/dist/memoize.esm.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -28254,7 +27451,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _templateObject4() {
-  var data = _taggedTemplateLiteral(["\n  display: inline-block;\n  animation: 1s ", " linear infinite;\n"]);
+  var data = _taggedTemplateLiteral(["\n  display: inline-block;\n  animation: 3s ", " ease-in-out infinite;\n"]);
 
   _templateObject4 = function _templateObject4() {
     return data;
@@ -28314,73 +27511,607 @@ var NavBar = function NavBar() {
 
 var _default = NavBar;
 exports.default = _default;
-},{"react":"../node_modules/react/index.js","@reach/router":"../node_modules/@reach/router/es/index.js","react-emotion":"../node_modules/react-emotion/dist/index.esm.js","./colors":"colors.js"}],"SearchParams.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","@reach/router":"../node_modules/@reach/router/es/index.js","react-emotion":"../node_modules/react-emotion/dist/index.esm.js","./colors":"colors.js"}],"../node_modules/process/browser.js":[function(require,module,exports) {
+
+// shim for using process in browser
+var process = module.exports = {}; // cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+  throw new Error('setTimeout has not been defined');
+}
+
+function defaultClearTimeout() {
+  throw new Error('clearTimeout has not been defined');
+}
+
+(function () {
+  try {
+    if (typeof setTimeout === 'function') {
+      cachedSetTimeout = setTimeout;
+    } else {
+      cachedSetTimeout = defaultSetTimout;
+    }
+  } catch (e) {
+    cachedSetTimeout = defaultSetTimout;
+  }
+
+  try {
+    if (typeof clearTimeout === 'function') {
+      cachedClearTimeout = clearTimeout;
+    } else {
+      cachedClearTimeout = defaultClearTimeout;
+    }
+  } catch (e) {
+    cachedClearTimeout = defaultClearTimeout;
+  }
+})();
+
+function runTimeout(fun) {
+  if (cachedSetTimeout === setTimeout) {
+    //normal enviroments in sane situations
+    return setTimeout(fun, 0);
+  } // if setTimeout wasn't available but was latter defined
+
+
+  if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+    cachedSetTimeout = setTimeout;
+    return setTimeout(fun, 0);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedSetTimeout(fun, 0);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+      return cachedSetTimeout.call(null, fun, 0);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+      return cachedSetTimeout.call(this, fun, 0);
+    }
+  }
+}
+
+function runClearTimeout(marker) {
+  if (cachedClearTimeout === clearTimeout) {
+    //normal enviroments in sane situations
+    return clearTimeout(marker);
+  } // if clearTimeout wasn't available but was latter defined
+
+
+  if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+    cachedClearTimeout = clearTimeout;
+    return clearTimeout(marker);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedClearTimeout(marker);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+      return cachedClearTimeout.call(null, marker);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+      // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+      return cachedClearTimeout.call(this, marker);
+    }
+  }
+}
+
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+  if (!draining || !currentQueue) {
+    return;
+  }
+
+  draining = false;
+
+  if (currentQueue.length) {
+    queue = currentQueue.concat(queue);
+  } else {
+    queueIndex = -1;
+  }
+
+  if (queue.length) {
+    drainQueue();
+  }
+}
+
+function drainQueue() {
+  if (draining) {
+    return;
+  }
+
+  var timeout = runTimeout(cleanUpNextTick);
+  draining = true;
+  var len = queue.length;
+
+  while (len) {
+    currentQueue = queue;
+    queue = [];
+
+    while (++queueIndex < len) {
+      if (currentQueue) {
+        currentQueue[queueIndex].run();
+      }
+    }
+
+    queueIndex = -1;
+    len = queue.length;
+  }
+
+  currentQueue = null;
+  draining = false;
+  runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+  var args = new Array(arguments.length - 1);
+
+  if (arguments.length > 1) {
+    for (var i = 1; i < arguments.length; i++) {
+      args[i - 1] = arguments[i];
+    }
+  }
+
+  queue.push(new Item(fun, args));
+
+  if (queue.length === 1 && !draining) {
+    runTimeout(drainQueue);
+  }
+}; // v8 likes predictible objects
+
+
+function Item(fun, array) {
+  this.fun = fun;
+  this.array = array;
+}
+
+Item.prototype.run = function () {
+  this.fun.apply(null, this.array);
+};
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+  return [];
+};
+
+process.binding = function (name) {
+  throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () {
+  return '/';
+};
+
+process.chdir = function (dir) {
+  throw new Error('process.chdir is not supported');
+};
+
+process.umask = function () {
+  return 0;
+};
+},{}],"../node_modules/is-node/index.js":[function(require,module,exports) {
+var process = require("process");
+// Coding standard for this project defined @ https://github.com/MatthewSH/standards/blob/master/JavaScript.md
+'use strict';
+
+exports = module.exports = !!(typeof process !== 'undefined' && process.versions && process.versions.node);
+},{"process":"../node_modules/process/browser.js"}],"../node_modules/browser-jsonp/lib/jsonp.js":[function(require,module,exports) {
+var define;
+(function() {
+  var JSONP, computedUrl, createElement, encode, noop, objectToURI, random, randomString;
+
+  createElement = function(tag) {
+    return window.document.createElement(tag);
+  };
+
+  encode = window.encodeURIComponent;
+
+  random = Math.random;
+
+  JSONP = function(options) {
+    var callback, callbackFunc, callbackName, done, head, params, script;
+    if (options == null) {
+      options = {};
+    }
+    params = {
+      data: options.data || {},
+      error: options.error || noop,
+      success: options.success || noop,
+      beforeSend: options.beforeSend || noop,
+      complete: options.complete || noop,
+      url: options.url || ''
+    };
+    params.computedUrl = computedUrl(params);
+    if (params.url.length === 0) {
+      throw new Error('MissingUrl');
+    }
+    done = false;
+    if (params.beforeSend({}, params) !== false) {
+      callbackName = options.callbackName || 'callback';
+      callbackFunc = options.callbackFunc || 'jsonp_' + randomString(15);
+      callback = params.data[callbackName] = callbackFunc;
+      window[callback] = function(data) {
+        window[callback] = null;
+        params.success(data, params);
+        return params.complete(data, params);
+      };
+      script = createElement('script');
+      script.src = computedUrl(params);
+      script.async = true;
+      script.onerror = function(evt) {
+        params.error({
+          url: script.src,
+          event: evt
+        });
+        return params.complete({
+          url: script.src,
+          event: evt
+        }, params);
+      };
+      script.onload = script.onreadystatechange = function() {
+        var ref, ref1;
+        if (done || ((ref = this.readyState) !== 'loaded' && ref !== 'complete')) {
+          return;
+        }
+        done = true;
+        if (script) {
+          script.onload = script.onreadystatechange = null;
+          if ((ref1 = script.parentNode) != null) {
+            ref1.removeChild(script);
+          }
+          return script = null;
+        }
+      };
+      head = window.document.getElementsByTagName('head')[0] || window.document.documentElement;
+      head.insertBefore(script, head.firstChild);
+    }
+    return {
+      abort: function() {
+        window[callback] = function() {
+          return window[callback] = null;
+        };
+        done = true;
+        if (script != null ? script.parentNode : void 0) {
+          script.onload = script.onreadystatechange = null;
+          script.parentNode.removeChild(script);
+          return script = null;
+        }
+      }
+    };
+  };
+
+  noop = function() {
+    return void 0;
+  };
+
+  computedUrl = function(params) {
+    var url;
+    url = params.url;
+    url += params.url.indexOf('?') < 0 ? '?' : '&';
+    url += objectToURI(params.data);
+    return url;
+  };
+
+  randomString = function(length) {
+    var str;
+    str = '';
+    while (str.length < length) {
+      str += random().toString(36).slice(2, 3);
+    }
+    return str;
+  };
+
+  objectToURI = function(obj) {
+    var data, key, value;
+    data = (function() {
+      var results;
+      results = [];
+      for (key in obj) {
+        value = obj[key];
+        results.push(encode(key) + '=' + encode(value));
+      }
+      return results;
+    })();
+    return data.join('&');
+  };
+
+  if (typeof define !== "undefined" && define !== null ? define.amd : void 0) {
+    define(function() {
+      return JSONP;
+    });
+  } else if (typeof module !== "undefined" && module !== null ? module.exports : void 0) {
+    module.exports = JSONP;
+  } else {
+    this.JSONP = JSONP;
+  }
+
+}).call(this);
+
+},{}],"../node_modules/petfinder-client/index.js":[function(require,module,exports) {
+const isNode = require("is-node");
+let jsonp = () =>
+  console.warn("WARNING, YOU CALLED JSONP IN A NON-BROWSER CONTEXT");
+if (!isNode) {
+  jsonp = require("browser-jsonp");
+}
+
+let key;
+const BASE_URL = "http://api.petfinder.com";
+const ANIMALS = [
+  "dog",
+  "cat",
+  "bird",
+  "barnyard",
+  "reptile",
+  "smallfurry",
+  "horse",
+  "pig"
+];
+
+const serialize = function(res) {
+  const acc = {};
+  for (let prop in res) {
+    if (!prop) {
+      break;
+    }
+    if (res.hasOwnProperty(prop) && prop.charAt(0) !== "@") {
+      if (res[prop].hasOwnProperty("$t")) {
+        acc[prop] = res[prop]["$t"];
+      } else if (Array.isArray(res[prop])) {
+        acc[prop] = res[prop].map(item => {
+          if (item.hasOwnProperty("$t")) {
+            if (Object.getOwnPropertyNames(item).length > 1) {
+              item.value = item["$t"];
+              delete item["$t"];
+              return item;
+            } else {
+              return item["$t"];
+            }
+          } else {
+            return serialize(item);
+          }
+        });
+      } else if (Object.getOwnPropertyNames(res[prop]).length === 0) {
+        acc[prop] = null;
+      } else {
+        let serialized = serialize(res[prop]);
+        acc[prop] = serialized;
+      }
+    }
+  }
+  return acc;
+};
+
+const request = function(method, opts) {
+  let newOpts = { key, format: "json" };
+  newOpts = Object.assign(newOpts, opts);
+  return new Promise((resolve, reject) => {
+    jsonp({
+      url: BASE_URL + "/" + method,
+      data: newOpts,
+      success: function(data) {
+        resolve(serialize(data));
+      },
+      error: function(err) {
+        reject(err);
+      }
+    });
+  });
+};
+
+const api = {
+  breed: {
+    list(opts) {
+      return request("breed.list", opts);
+    }
+  },
+  pet: {
+    getRandom(opts) {
+      return request("pet.getRandom", opts);
+    },
+    get(opts) {
+      return request("pet.get", opts);
+    },
+    find(opts) {
+      return request("pet.find", opts);
+    }
+  },
+  shelter: {
+    getPets(opts) {
+      return request("shelter.getPets", opts);
+    },
+    listByBreed(opts) {
+      return request("shelter.listByBreed", opts);
+    },
+    find(opts) {
+      return request("shelter.find", opts);
+    },
+    get(opts) {
+      return request("shelter.get", opts);
+    }
+  }
+};
+
+module.exports = function createPetfinderSingleton(creds) {
+  if (creds) {
+    key = creds.key;
+  }
+  return api;
+};
+module.exports.ANIMALS = ANIMALS;
+
+},{"is-node":"../node_modules/is-node/index.js","browser-jsonp":"../node_modules/browser-jsonp/lib/jsonp.js"}],"SearchContext.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
+exports.Consumer = exports.Provider = void 0;
 
 var _react = _interopRequireDefault(require("react"));
 
-var _SearchBox = _interopRequireDefault(require("./SearchBox"));
-
-var _router = require("@reach/router");
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+var SearchContext = _react.default.createContext({
+  location: 'Seattle, WA',
+  animal: '',
+  breed: '',
+  breeds: [],
+  handleAnimalChange: function handleAnimalChange() {},
+  handleBreedChange: function handleBreedChange() {},
+  handleLocationChange: function handleLocationChange() {},
+  getBreeds: function getBreeds() {}
+});
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var Provider = SearchContext.Provider;
+exports.Provider = Provider;
+var Consumer = SearchContext.Consumer;
+exports.Consumer = Consumer;
+},{"react":"../node_modules/react/index.js"}],"../node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
+var bundleURL = null;
 
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var Search =
-/*#__PURE__*/
-function (_React$Component) {
-  _inherits(Search, _React$Component);
-
-  function Search() {
-    _classCallCheck(this, Search);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(Search).apply(this, arguments));
+function getBundleURLCached() {
+  if (!bundleURL) {
+    bundleURL = getBundleURL();
   }
 
-  _createClass(Search, [{
-    key: "handleSearchSubmit",
-    value: function handleSearchSubmit() {
-      (0, _router.navigate)('/');
-    }
-  }, {
-    key: "render",
-    value: function render() {
-      return _react.default.createElement("div", {
-        className: "search-route"
-      }, _react.default.createElement(_SearchBox.default, {
-        search: this.handleSearchSubmit
-      }));
-    }
-  }]);
+  return bundleURL;
+}
 
-  return Search;
-}(_react.default.Component);
+function getBundleURL() {
+  // Attempt to find the URL of the current script and use that as the base URL
+  try {
+    throw new Error();
+  } catch (err) {
+    var matches = ('' + err.stack).match(/(https?|file|ftp):\/\/[^)\n]+/g);
 
-var _default = Search;
-exports.default = _default;
-},{"react":"../node_modules/react/index.js","./SearchBox":"SearchBox.js","@reach/router":"../node_modules/@reach/router/es/index.js"}],"App.js":[function(require,module,exports) {
+    if (matches) {
+      return getBaseURL(matches[0]);
+    }
+  }
+
+  return '/';
+}
+
+function getBaseURL(url) {
+  return ('' + url).replace(/^((?:https?|file|ftp):\/\/.+)\/[^/]+$/, '$1') + '/';
+}
+
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+},{}],"../node_modules/parcel-bundler/src/builtins/bundle-loader.js":[function(require,module,exports) {
+var getBundleURL = require('./bundle-url').getBundleURL;
+
+function loadBundlesLazy(bundles) {
+  if (!Array.isArray(bundles)) {
+    bundles = [bundles];
+  }
+
+  var id = bundles[bundles.length - 1];
+
+  try {
+    return Promise.resolve(require(id));
+  } catch (err) {
+    if (err.code === 'MODULE_NOT_FOUND') {
+      return new LazyPromise(function (resolve, reject) {
+        loadBundles(bundles.slice(0, -1)).then(function () {
+          return require(id);
+        }).then(resolve, reject);
+      });
+    }
+
+    throw err;
+  }
+}
+
+function loadBundles(bundles) {
+  return Promise.all(bundles.map(loadBundle));
+}
+
+var bundleLoaders = {};
+
+function registerBundleLoader(type, loader) {
+  bundleLoaders[type] = loader;
+}
+
+module.exports = exports = loadBundlesLazy;
+exports.load = loadBundles;
+exports.register = registerBundleLoader;
+var bundles = {};
+
+function loadBundle(bundle) {
+  var id;
+
+  if (Array.isArray(bundle)) {
+    id = bundle[1];
+    bundle = bundle[0];
+  }
+
+  if (bundles[bundle]) {
+    return bundles[bundle];
+  }
+
+  var type = (bundle.substring(bundle.lastIndexOf('.') + 1, bundle.length) || bundle).toLowerCase();
+  var bundleLoader = bundleLoaders[type];
+
+  if (bundleLoader) {
+    return bundles[bundle] = bundleLoader(getBundleURL() + bundle).then(function (resolved) {
+      if (resolved) {
+        module.bundle.register(id, resolved);
+      }
+
+      return resolved;
+    });
+  }
+}
+
+function LazyPromise(executor) {
+  this.executor = executor;
+  this.promise = null;
+}
+
+LazyPromise.prototype.then = function (onSuccess, onError) {
+  if (this.promise === null) this.promise = new Promise(this.executor);
+  return this.promise.then(onSuccess, onError);
+};
+
+LazyPromise.prototype.catch = function (onError) {
+  if (this.promise === null) this.promise = new Promise(this.executor);
+  return this.promise.catch(onError);
+};
+},{"./bundle-url":"../node_modules/parcel-bundler/src/builtins/bundle-url.js"}],"App.js":[function(require,module,exports) {
 "use strict";
 
 var _react = _interopRequireDefault(require("react"));
@@ -28389,13 +28120,9 @@ var _reactDom = require("react-dom");
 
 var _router = require("@reach/router");
 
-var _Results = _interopRequireDefault(require("./Results"));
-
-var _Details = _interopRequireDefault(require("./Details"));
+var _reactLoadable = _interopRequireDefault(require("react-loadable"));
 
 var _NavBar = _interopRequireDefault(require("./NavBar"));
-
-var _SearchParams = _interopRequireDefault(require("./SearchParams"));
 
 var _petfinderClient = _interopRequireDefault(require("petfinder-client"));
 
@@ -28424,6 +28151,29 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 var petfinder = (0, _petfinderClient.default)({
   key: "8a8a3aae668f6e7d1e49941152511848",
   secret: "cf1a030ecc1bc4ba14d255fdeca53338"
+});
+
+var loading = function loading() {
+  return _react.default.createElement("h1", null, "loading split code...");
+};
+
+var LoadableDetails = (0, _reactLoadable.default)({
+  loader: function loader() {
+    return require("_bundle_loader")(require.resolve('./Details'));
+  },
+  loading: loading
+});
+var LoadableSearchParams = (0, _reactLoadable.default)({
+  loader: function loader() {
+    return require("_bundle_loader")(require.resolve('./SearchParams'));
+  },
+  loading: loading
+});
+var LoadableResults = (0, _reactLoadable.default)({
+  loader: function loader() {
+    return require("_bundle_loader")(require.resolve('./Results'));
+  },
+  loading: loading
 });
 
 var App =
@@ -28502,11 +28252,11 @@ function (_React$Component) {
     value: function render() {
       return _react.default.createElement("div", null, _react.default.createElement(_NavBar.default, null), _react.default.createElement(_SearchContext.Provider, {
         value: this.state
-      }, _react.default.createElement(_router.Router, null, _react.default.createElement(_Results.default, {
+      }, _react.default.createElement(_router.Router, null, _react.default.createElement(LoadableResults, {
         path: "/"
-      }), _react.default.createElement(_Details.default, {
+      }), _react.default.createElement(LoadableDetails, {
         path: "/details/:id"
-      }), _react.default.createElement(_SearchParams.default, {
+      }), _react.default.createElement(LoadableSearchParams, {
         path: "/search-params"
       }))));
     }
@@ -28516,7 +28266,119 @@ function (_React$Component) {
 }(_react.default.Component);
 
 (0, _reactDom.render)(_react.default.createElement(App, null), document.getElementById('root'));
-},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","@reach/router":"../node_modules/@reach/router/es/index.js","./Results":"Results.js","./Details":"Details.js","./NavBar":"NavBar.js","./SearchParams":"SearchParams.js","petfinder-client":"../node_modules/petfinder-client/index.js","./SearchContext":"SearchContext.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","@reach/router":"../node_modules/@reach/router/es/index.js","react-loadable":"../node_modules/react-loadable/lib/index.js","./NavBar":"NavBar.js","petfinder-client":"../node_modules/petfinder-client/index.js","./SearchContext":"SearchContext.js","_bundle_loader":"../node_modules/parcel-bundler/src/builtins/bundle-loader.js","./Details":[["Details.180b8e97.js","Details.js"],"Details.180b8e97.map","Details.js"],"./SearchParams":[["SearchParams.95c957bf.js","SearchParams.js"],"SearchParams.95c957bf.map","SearchParams.js"],"./Results":[["Results.30829819.js","Results.js"],"Results.30829819.map","Results.js"]}],"SearchBox.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(require("react"));
+
+var _petfinderClient = require("petfinder-client");
+
+var _SearchContext = require("./SearchContext");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var SearchBox =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(SearchBox, _Component);
+
+  function SearchBox() {
+    var _getPrototypeOf2;
+
+    var _this;
+
+    var _temp;
+
+    _classCallCheck(this, SearchBox);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return _possibleConstructorReturn(_this, (_temp = _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(SearchBox)).call.apply(_getPrototypeOf2, [this].concat(args))), _this.handleFormSubmit = function (event) {
+      event.preventDefault();
+
+      _this.props.search();
+    }, _temp));
+  }
+
+  _createClass(SearchBox, [{
+    key: "render",
+    value: function render() {
+      var _this2 = this;
+
+      return _react.default.createElement(_SearchContext.Consumer, null, function (context) {
+        return _react.default.createElement("div", {
+          className: "search-params"
+        }, _react.default.createElement("form", {
+          onSubmit: _this2.handleFormSubmit
+        }, _react.default.createElement("label", {
+          htmlFor: "location"
+        }, "Location", _react.default.createElement("input", {
+          id: "location",
+          value: context.location,
+          placeholder: "Location",
+          onChange: context.handleLocationChange
+        })), _react.default.createElement("label", {
+          htmlFor: "animal"
+        }, "Animal", _react.default.createElement("select", {
+          id: "animal",
+          value: context.animal,
+          onChange: context.handleAnimalChange,
+          onBlur: context.handleAnimalChange
+        }, _react.default.createElement("option", null), _petfinderClient.ANIMALS.map(function (animal) {
+          return _react.default.createElement("option", {
+            key: animal,
+            value: animal
+          }, animal);
+        }))), _react.default.createElement("label", {
+          htmlFor: "breed"
+        }, "Breed", _react.default.createElement("select", {
+          disabled: !context.breeds.length,
+          id: "breed",
+          value: context.breed,
+          onChange: context.handleBreedChange,
+          onBlur: context.handleBreedChange
+        }, _react.default.createElement("option", null), context.breeds.map(function (breed) {
+          return _react.default.createElement("option", {
+            key: breed,
+            value: breed
+          }, breed);
+        }))), _react.default.createElement("button", {
+          onClick: _this2.props.search
+        }, "Submit")));
+      });
+    }
+  }]);
+
+  return SearchBox;
+}(_react.Component);
+
+exports.default = SearchBox;
+},{"react":"../node_modules/react/index.js","petfinder-client":"../node_modules/petfinder-client/index.js","./SearchContext":"SearchContext.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -28543,7 +28405,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55251" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59457" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
@@ -28685,5 +28547,29 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","App.js"], null)
+},{}],"../node_modules/parcel-bundler/src/builtins/loaders/browser/js-loader.js":[function(require,module,exports) {
+module.exports = function loadJSBundle(bundle) {
+  return new Promise(function (resolve, reject) {
+    var script = document.createElement('script');
+    script.async = true;
+    script.type = 'text/javascript';
+    script.charset = 'utf-8';
+    script.src = bundle;
+
+    script.onerror = function (e) {
+      script.onerror = script.onload = null;
+      reject(e);
+    };
+
+    script.onload = function () {
+      script.onerror = script.onload = null;
+      resolve();
+    };
+
+    document.getElementsByTagName('head')[0].appendChild(script);
+  });
+};
+},{}],0:[function(require,module,exports) {
+var b=require("../node_modules/parcel-bundler/src/builtins/bundle-loader.js");b.register("js",require("../node_modules/parcel-bundler/src/builtins/loaders/browser/js-loader.js"));
+},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js",0,"App.js"], null)
 //# sourceMappingURL=/App.d36a57b6.map

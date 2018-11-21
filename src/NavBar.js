@@ -28,7 +28,7 @@ const Spin = keyframes`
 
 const SpyGlass = styled('span')`
   display: inline-block;
-  animation: 1s ${Spin} linear infinite;
+  animation: 3s ${Spin} ease-in-out infinite;
 `;
 
 const NavBar = () => (
