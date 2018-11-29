@@ -172,6 +172,8 @@ function reloadCSS() {
 
 module.exports = reloadCSS;
 },{"./bundle-url":"../node_modules/parcel-bundler/src/builtins/bundle-url.js"}],"style.css":[function(require,module,exports) {
+"use strict";
+
 var reloadCSS = require('_css_loader');
 
 module.hot.dispose(reloadCSS);
@@ -203,7 +205,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51310" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61496" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

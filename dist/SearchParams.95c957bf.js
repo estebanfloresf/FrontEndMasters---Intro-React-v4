@@ -110,15 +110,6 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-var _SearchBox = _interopRequireDefault(require("./SearchBox"));
-
-var _router = require("@reach/router");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -138,10 +129,22 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
+var _react = require("react");
+
+var _react2 = _interopRequireDefault(_react);
+
+var _SearchBox = require("./SearchBox");
+
+var _SearchBox2 = _interopRequireDefault(_SearchBox);
+
+var _router = require("@reach/router");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var Search =
 /*#__PURE__*/
-function (_React$Component) {
-  _inherits(Search, _React$Component);
+function (_react2$default$Compo) {
+  _inherits(Search, _react2$default$Compo);
 
   function Search() {
     _classCallCheck(this, Search);
@@ -157,19 +160,18 @@ function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      return _react.default.createElement("div", {
+      return _react2.default.createElement("div", {
         className: "search-route"
-      }, _react.default.createElement(_SearchBox.default, {
+      }, _react2.default.createElement(_SearchBox2.default, {
         search: this.handleSearchSubmit
       }));
     }
   }]);
 
   return Search;
-}(_react.default.Component);
+}(_react2.default.Component);
 
-var _default = Search;
-exports.default = _default;
+exports.default = Search;
 },{"react":"../node_modules/react/index.js","./SearchBox":"SearchBox.js","@reach/router":"../node_modules/@reach/router/es/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -197,7 +199,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51310" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61496" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

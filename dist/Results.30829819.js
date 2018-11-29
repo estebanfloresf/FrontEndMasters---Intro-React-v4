@@ -110,13 +110,6 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-var _router = require("@reach/router");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -136,10 +129,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
+var _react = require("react");
+
+var _react2 = _interopRequireDefault(_react);
+
+var _router = require("@reach/router");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var Pet =
 /*#__PURE__*/
-function (_React$Component) {
-  _inherits(Pet, _React$Component);
+function (_react2$default$Compo) {
+  _inherits(Pet, _react2$default$Compo);
 
   function Pet() {
     _classCallCheck(this, Pet);
@@ -166,44 +167,30 @@ function (_React$Component) {
       }
 
       var hero = photos[0] ? photos[0].value : 'http://placecorgi.com/300/300';
-      return _react.default.createElement(_router.Link, {
+      return _react2.default.createElement(_router.Link, {
         to: "/details/".concat(id),
         className: "pet"
-      }, _react.default.createElement("div", {
+      }, _react2.default.createElement("div", {
         className: "image-container"
-      }, _react.default.createElement("img", {
+      }, _react2.default.createElement("img", {
         src: hero,
         alt: name
-      }), ' '), ' ', _react.default.createElement("div", {
+      }), ' '), ' ', _react2.default.createElement("div", {
         className: "info"
-      }, _react.default.createElement("h1", null, " ", name, " "), " ", _react.default.createElement("h2", null, " ", "".concat(animal, " \u2014 ").concat(breed, " \u2014 ").concat(location), " ")), ' ');
+      }, _react2.default.createElement("h1", null, " ", name, " "), " ", _react2.default.createElement("h2", null, " ", "".concat(animal, " \u2014 ").concat(breed, " \u2014 ").concat(location), " ")), ' ');
     }
   }]);
 
   return Pet;
-}(_react.default.Component);
+}(_react2.default.Component);
 
-var _default = Pet;
-exports.default = _default;
+exports.default = Pet;
 },{"react":"../node_modules/react/index.js","@reach/router":"../node_modules/@reach/router/es/index.js"}],"Results.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
-
-var _react = _interopRequireDefault(require("react"));
-
-var _SearchBox = _interopRequireDefault(require("./SearchBox"));
-
-var _Pet = _interopRequireDefault(require("./Pet"));
-
-var _petfinderClient = _interopRequireDefault(require("petfinder-client"));
-
-var _reactRedux = require("react-redux");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -223,15 +210,35 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
-var petfinder = (0, _petfinderClient.default)({
+var _react = require("react");
+
+var _react2 = _interopRequireDefault(_react);
+
+var _SearchBox = require("./SearchBox");
+
+var _SearchBox2 = _interopRequireDefault(_SearchBox);
+
+var _Pet = require("./Pet");
+
+var _Pet2 = _interopRequireDefault(_Pet);
+
+var _petfinderClient = require("petfinder-client");
+
+var _petfinderClient2 = _interopRequireDefault(_petfinderClient);
+
+var _reactRedux = require("react-redux");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var petfinder = (0, _petfinderClient2.default)({
   key: "8a8a3aae668f6e7d1e49941152511848",
   secret: "cf1a030ecc1bc4ba14d255fdeca53338"
 });
 
 var Results =
 /*#__PURE__*/
-function (_React$Component) {
-  _inherits(Results, _React$Component);
+function (_react2$default$Compo) {
+  _inherits(Results, _react2$default$Compo);
 
   function Results() {
     var _getPrototypeOf2;
@@ -288,9 +295,9 @@ function (_React$Component) {
     key: "render",
     value: function render() {
       var pets = this.state.pets;
-      return _react.default.createElement("div", {
+      return _react2.default.createElement("div", {
         className: "search"
-      }, _react.default.createElement(_SearchBox.default, {
+      }, _react2.default.createElement(_SearchBox2.default, {
         search: this.search
       }), pets.map(function (pet) {
         var breed;
@@ -301,7 +308,7 @@ function (_React$Component) {
           breed = pet.breeds.breed;
         }
 
-        return _react.default.createElement(_Pet.default, {
+        return _react2.default.createElement(_Pet2.default, {
           key: pet.id,
           animal: pet.animal,
           name: pet.name,
@@ -315,7 +322,7 @@ function (_React$Component) {
   }]);
 
   return Results;
-}(_react.default.Component);
+}(_react2.default.Component);
 
 var mapStateToProps = function mapStateToProps(_ref) {
   var location = _ref.location,
@@ -328,9 +335,7 @@ var mapStateToProps = function mapStateToProps(_ref) {
   };
 };
 
-var _default = (0, _reactRedux.connect)(mapStateToProps)(Results);
-
-exports.default = _default;
+exports.default = (0, _reactRedux.connect)(mapStateToProps)(Results);
 },{"react":"../node_modules/react/index.js","./SearchBox":"SearchBox.js","./Pet":"Pet.js","petfinder-client":"../node_modules/petfinder-client/index.js","react-redux":"../node_modules/react-redux/es/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -358,7 +363,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51310" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61496" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

@@ -1,5 +1,6 @@
 {
     "presets": [
+        "node6",
         "react",
         [
             "env",
@@ -10,5 +11,7 @@
             }
         ]
     ],
-    "plugins": ["transform-class-properties"]
+    "plugins": ["syntax-dynamic-import", "transform-object-rest-spread",
+        "transform-class-properties", "transform-regenerator", 
+        "transform-object-assign"]
 }
